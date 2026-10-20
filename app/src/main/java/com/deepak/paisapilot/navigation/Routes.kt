@@ -3,6 +3,9 @@ package com.deepak.paisapilot.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+data object OnboardingRoute
+
+@Serializable
 data object TodayRoute
 
 @Serializable

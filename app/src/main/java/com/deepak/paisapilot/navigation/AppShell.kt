@@ -1,7 +1,10 @@
 package com.deepak.paisapilot.navigation
 
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -30,8 +33,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -39,6 +44,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.deepak.paisapilot.R
+import com.deepak.paisapilot.feature.onboarding.OnboardingRoute as OnboardingScreenRoute
 
 private data class TabDestination(
     val route: Any,
@@ -48,25 +54,37 @@ private data class TabDestination(
 )
 
 @Composable
-fun AppShell() {
+fun AppShell(startAtOnboarding: Boolean) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
+    val showOnboarding = destination?.hasRoute<OnboardingRoute>() == true ||
+        (destination == null && startAtOnboarding)
     val showSettings = destination?.hasRoute<SettingsRoute>() == true
     val tabs = shellTabs()
+    val activity = LocalActivity.current
+    val atRoot = navController.previousBackStackEntry?.destination is NavGraph ||
+        navController.previousBackStackEntry == null
+    // Navigation 2.10 leaves the graph under the start destination and does not finish the
+    // activity on API 36, so the root destination finishes itself.
+    BackHandler(enabled = atRoot) {
+        activity?.finish()
+    }
 
     Scaffold(
         topBar = {
-            ShellTopBar(
-                titleRes = titleFor(destination),
-                showMenu = !showSettings,
-                showBack = showSettings,
-                onSettings = { navController.navigate(SettingsRoute) },
-                onBack = { navController.popBackStack() },
-            )
+            if (!showOnboarding) {
+                ShellTopBar(
+                    titleRes = titleFor(destination),
+                    showMenu = !showSettings,
+                    showBack = showSettings,
+                    onSettings = { navController.navigate(SettingsRoute) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
         },
         bottomBar = {
-            if (!showSettings) {
+            if (!showOnboarding && !showSettings) {
                 NavigationBar {
                     tabs.forEach { tab ->
                         NavigationBarItem(
@@ -82,9 +100,18 @@ fun AppShell() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = TodayRoute,
+            startDestination = if (startAtOnboarding) OnboardingRoute else TodayRoute,
             modifier = Modifier.padding(innerPadding),
         ) {
+            composable<OnboardingRoute> {
+                OnboardingScreenRoute(
+                    onCompleted = {
+                        navController.navigate(TodayRoute) {
+                            popUpTo<OnboardingRoute> { inclusive = true }
+                        }
+                    },
+                )
+            }
             composable<TodayRoute> { PlaceholderHeading(stringResource(R.string.tab_today)) }
             composable<ActivityRoute> { PlaceholderHeading(stringResource(R.string.tab_activity)) }
             composable<GroupsRoute> { PlaceholderHeading(stringResource(R.string.tab_groups)) }
@@ -143,7 +170,10 @@ private fun ShellTopBar(
         },
         actions = {
             if (showMenu && titleRes == R.string.tab_today) {
-                IconButton(onClick = { menuOpen = true }) {
+                IconButton(
+                    onClick = { menuOpen = true },
+                    modifier = Modifier.size(48.dp),
+                ) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
                         contentDescription = stringResource(R.string.more_options),

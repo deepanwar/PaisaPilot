@@ -11,4 +11,14 @@
     <string name="currency_prefix">₹</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="onboarding_title">Track spending, together or solo</string>
+    <string name="onboarding_privacy">Your data stays on this device.</string>
+    <string name="onboarding_name_label">Display name</string>
+    <string name="onboarding_start">Start tracking</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_footer">Saved only on this device; uninstall or clearing data may delete it.</string>
+    <string name="onboarding_name_blank">Enter a name, or choose Skip.</string>
+    <string name="onboarding_name_too_long">Use 40 characters or fewer.</string>
+    <string name="onboarding_save_failed">Couldn\'t save. Try again.</string>
+    <string name="onboarding_retry">Retry</string>
 </resources>
