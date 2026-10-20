@@ -1,0 +1,186 @@
+package com.deepak.paisapilot.navigation
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.deepak.paisapilot.R
+
+private data class TabDestination(
+    val route: Any,
+    @StringRes val labelRes: Int,
+    val icon: ImageVector,
+    val selected: (NavDestination?) -> Boolean,
+)
+
+@Composable
+fun AppShell() {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destination = backStackEntry?.destination
+    val showSettings = destination?.hasRoute<SettingsRoute>() == true
+    val tabs = shellTabs()
+
+    Scaffold(
+        topBar = {
+            ShellTopBar(
+                titleRes = titleFor(destination),
+                showMenu = !showSettings,
+                showBack = showSettings,
+                onSettings = { navController.navigate(SettingsRoute) },
+                onBack = { navController.popBackStack() },
+            )
+        },
+        bottomBar = {
+            if (!showSettings) {
+                NavigationBar {
+                    tabs.forEach { tab ->
+                        NavigationBarItem(
+                            selected = tab.selected(destination),
+                            onClick = { navController.navigateToTab(tab.route) },
+                            icon = { Icon(tab.icon, contentDescription = null) },
+                            label = { Text(stringResource(tab.labelRes)) },
+                        )
+                    }
+                }
+            }
+        },
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = TodayRoute,
+            modifier = Modifier.padding(innerPadding),
+        ) {
+            composable<TodayRoute> { PlaceholderHeading(stringResource(R.string.tab_today)) }
+            composable<ActivityRoute> { PlaceholderHeading(stringResource(R.string.tab_activity)) }
+            composable<GroupsRoute> { PlaceholderHeading(stringResource(R.string.tab_groups)) }
+            composable<InsightsRoute> { PlaceholderHeading(stringResource(R.string.tab_insights)) }
+            composable<SettingsRoute> { PlaceholderHeading(stringResource(R.string.settings_title)) }
+        }
+    }
+}
+
+@Composable
+private fun shellTabs(): List<TabDestination> = listOf(
+    TabDestination(TodayRoute, R.string.tab_today, Icons.Filled.Home) {
+        it == null || it.hasRoute<TodayRoute>()
+    },
+        TabDestination(ActivityRoute, R.string.tab_activity, Icons.AutoMirrored.Filled.List) {
+        it?.hasRoute<ActivityRoute>() == true
+    },
+    TabDestination(GroupsRoute, R.string.tab_groups, Icons.Filled.Person) {
+        it?.hasRoute<GroupsRoute>() == true
+    },
+    TabDestination(InsightsRoute, R.string.tab_insights, Icons.Filled.Info) {
+        it?.hasRoute<InsightsRoute>() == true
+    },
+)
+
+@StringRes
+private fun titleFor(destination: NavDestination?): Int = when {
+    destination?.hasRoute<ActivityRoute>() == true -> R.string.tab_activity
+    destination?.hasRoute<GroupsRoute>() == true -> R.string.tab_groups
+    destination?.hasRoute<InsightsRoute>() == true -> R.string.tab_insights
+    destination?.hasRoute<SettingsRoute>() == true -> R.string.settings_title
+    else -> R.string.tab_today
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShellTopBar(
+    @StringRes titleRes: Int,
+    showMenu: Boolean,
+    showBack: Boolean,
+    onSettings: () -> Unit,
+    onBack: () -> Unit,
+) {
+    var menuOpen by rememberSaveable { mutableStateOf(false) }
+    TopAppBar(
+        title = { Text(stringResource(titleRes)) },
+        navigationIcon = {
+            if (showBack) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back),
+                    )
+                }
+            }
+        },
+        actions = {
+            if (showMenu && titleRes == R.string.tab_today) {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.more_options),
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.settings_title)) },
+                        onClick = {
+                            menuOpen = false
+                            onSettings()
+                        },
+                    )
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun PlaceholderHeading(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = Modifier.semantics { heading() },
+    )
+}
+
+private fun NavHostController.navigateToTab(route: Any) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}

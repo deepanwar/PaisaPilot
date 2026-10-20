@@ -65,8 +65,13 @@ AndroidX merges a signature permission, `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSIO
 
 `formatInr` always prints two decimals, including `₹125.00`. Whole amounts do not drop `.00`.
 
+### Navigation
+
+Navigation Compose 2.10.2 with the Kotlin serialization plugin 2.4.21 and `kotlinx-serialization-json` 1.11.0. The shell uses a stable `NavigationBar`. `NavigationSuiteScaffold` stays out until M5, and it needs an experimental-API check before use.
+
+`TopAppBar` is still `@ExperimentalMaterial3Api` in Material 3 1.4.0. `ShellTopBar` opts in for the plain bar only. Scroll behavior stays unused.
+
 ## Open
 
 - Review-balances trigger (G4). Pick before M4.
-- Navigation Compose 2.10.2 or Navigation 3. Default when navigation is added: 2.10.2.
 - Material 3 1.5.0. Re-check at the start of M3. v1 stays on the stable 1.4.0 line from the BOM until then.

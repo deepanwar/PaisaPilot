@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">PaisaPilot</string>
+    <string name="tab_today">Today</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_groups">Groups</string>
+    <string name="tab_insights">Insights</string>
+    <string name="settings_title">Settings</string>
+    <string name="more_options">More options</string>
+    <string name="back">Back</string>
+    <string name="amount_in_rupees">Amount in rupees</string>
+    <string name="currency_prefix">₹</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>
