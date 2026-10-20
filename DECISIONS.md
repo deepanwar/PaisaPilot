@@ -57,10 +57,16 @@ AndroidX merges a signature permission, `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSIO
 
 `ToolchainProbeDatabase` is a compile proof. It is not schema v1. `exportSchema` is false. Delete it when T-003 adds the ledger tables. The file name is `paisapilot.db`.
 
+### Max entry amount
+
+`MAX_ENTRY_PAISE` is 10,000,000,000 (₹10,00,00,000.00). PRODUCT’s old parenthetical of 1,000,000,000 paise was 10× too small. Acceptance fixture 6 uses the rupee figure. Defined once in `:domain`.
+
+### Decimal display
+
+`formatInr` always prints two decimals, including `₹125.00`. Whole amounts do not drop `.00`.
+
 ## Open
 
-- Max entry amount. PRODUCT §6 says ₹10,00,00,000.00 and also 1,000,000,000 paise. Those differ by 10×. Pick before M0.2.
-- Decimal display. Always two decimals, or hide `.00`. Pick before the formatter.
 - Review-balances trigger (G4). Pick before M4.
 - Navigation Compose 2.10.2 or Navigation 3. Default when navigation is added: 2.10.2.
 - Material 3 1.5.0. Re-check at the start of M3. v1 stays on the stable 1.4.0 line from the BOM until then.

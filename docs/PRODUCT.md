@@ -70,7 +70,7 @@ On compact width, 4 bottom destinations: **Today, Activity, Groups, Insights**. 
 | ExpenseShare | sharedExpenseId, memberId, sharePaise | Unique per expense/member; sum exactly equals expense amount |
 | Settlement | id, groupId, fromMemberId, toMemberId, amountPaise, occurredAt, note?, createdAt, updatedAt | Positive recorded transfer; distinct members; no actual money transfer |
 
-IDs are stable UUIDs; all money **signed 64-bit integer paise** (no floating point storage). Times stored as instants for metadata and as a local calendar date for the expense's reporting day; user-selected date must not change when timezone changes. INR formatted per `en-IN`, two decimals where paise nonzero and consistent grouping; don't silently round or truncate input. Upper limit per entry **₹10,00,00,000.00** (=1,000,000,000 paise), including guard for aggregate overflow. Negative expense/refund and income are deferred; no zero-amount entries.
+IDs are stable UUIDs; all money **signed 64-bit integer paise** (no floating point storage). Times stored as instants for metadata and as a local calendar date for the expense's reporting day; user-selected date must not change when timezone changes. INR formatted per `en-IN`, always two decimals and consistent grouping; don't silently round or truncate input. Upper limit per entry **₹10,00,00,000.00** (=10,000,000,000 paise), including guard for aggregate overflow. Negative expense/refund and income are deferred; no zero-amount entries.
 
 ## 7. Accounting rules (single source of truth)
 ### Personal
