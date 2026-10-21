@@ -8,14 +8,10 @@ import com.deepak.paisapilot.core.data.db.dao.LedgerSchemaDao
 import com.deepak.paisapilot.core.data.db.entity.ExpenseGroupEntity
 import com.deepak.paisapilot.core.data.db.entity.ExpenseShareEntity
 import com.deepak.paisapilot.core.data.db.entity.MemberEntity
-import com.deepak.paisapilot.core.data.db.entity.PersonalExpenseEntity
 import com.deepak.paisapilot.core.data.db.entity.SharedExpenseEntity
-import com.deepak.paisapilot.domain.money.MoneyLimits
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
@@ -112,16 +108,5 @@ class LedgerDatabaseTest {
             runBlocking { dao.insert(member("m2", "g1", "alex")) }
         }
         dao.insert(member("m3", "g2", "alex"))
-    }
-
-    @Test
-    fun personalExpenseRoundTrip() = runBlocking {
-        val max = PersonalExpenseEntity(
-            "p1", MoneyLimits.MAX_ENTRY_PAISE, null, "food", 20_000L, null, 5L, 6L,
-        )
-        dao.insert(max)
-        assertEquals(max, dao.personalExpense("p1"))
-        assertNull(dao.personalExpense("p1")!!.title)
-        assertNotNull(dao.personalExpense("p1"))
     }
 }

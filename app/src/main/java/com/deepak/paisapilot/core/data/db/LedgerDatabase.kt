@@ -3,6 +3,7 @@ package com.deepak.paisapilot.core.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.deepak.paisapilot.core.data.db.dao.LedgerSchemaDao
+import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
 import com.deepak.paisapilot.core.data.db.entity.ExpenseGroupEntity
 import com.deepak.paisapilot.core.data.db.entity.ExpenseShareEntity
 import com.deepak.paisapilot.core.data.db.entity.MemberEntity
@@ -26,4 +27,6 @@ const val LEDGER_DATABASE_NAME = "paisapilot.db"
 )
 abstract class LedgerDatabase : RoomDatabase() {
     abstract fun schemaDao(): LedgerSchemaDao
+
+    abstract fun personalExpenseDao(): PersonalExpenseDao
 }
