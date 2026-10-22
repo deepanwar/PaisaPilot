@@ -71,6 +71,10 @@ Navigation Compose 2.10.2 with the Kotlin serialization plugin 2.4.21 and `kotli
 
 `TopAppBar` is still `@ExperimentalMaterial3Api` in Material 3 1.4.0. `ShellTopBar` opts in for the plain bar only. Scroll behavior stays unused.
 
+### Date picker and form top bar (M1.2)
+
+`DatePickerDialog`, `DatePicker`, `rememberDatePickerState` and `SelectableDates` are `@ExperimentalMaterial3Api` in Material 3 1.4.0. `core/ui/DateSelectDialog.kt` is the only file that opts in. It uses the millisecond API and converts with `ZoneOffset.UTC` (G2). The expense form draws its own plain `TopAppBar` (same opt-in as `ShellTopBar`) so its back arrow can run the discard prompt. The shell hides its top and bottom bars on that route and consumes the Scaffold insets so the IME padding in `StickySaveBar` is applied once.
+
 ## Open
 
 - Review-balances trigger (G4). Pick before M4.

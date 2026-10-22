@@ -3,6 +3,9 @@ package com.deepak.paisapilot.navigation
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -45,6 +50,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.deepak.paisapilot.R
 import com.deepak.paisapilot.feature.onboarding.OnboardingRoute as OnboardingScreenRoute
+import com.deepak.paisapilot.feature.personal.form.ExpenseFormRoute as ExpenseFormScreenRoute
+import com.deepak.paisapilot.ui.theme.Spacing
 
 private data class TabDestination(
     val route: Any,
@@ -61,6 +68,7 @@ fun AppShell(startAtOnboarding: Boolean) {
     val showOnboarding = destination?.hasRoute<OnboardingRoute>() == true ||
         (destination == null && startAtOnboarding)
     val showSettings = destination?.hasRoute<SettingsRoute>() == true
+    val showForm = destination?.hasRoute<ExpenseFormRoute>() == true
     val tabs = shellTabs()
     val activity = LocalActivity.current
     val atRoot = navController.previousBackStackEntry?.destination is NavGraph ||
@@ -73,7 +81,7 @@ fun AppShell(startAtOnboarding: Boolean) {
 
     Scaffold(
         topBar = {
-            if (!showOnboarding) {
+            if (!showOnboarding && !showForm) {
                 ShellTopBar(
                     titleRes = titleFor(destination),
                     showMenu = !showSettings,
@@ -84,7 +92,7 @@ fun AppShell(startAtOnboarding: Boolean) {
             }
         },
         bottomBar = {
-            if (!showOnboarding && !showSettings) {
+            if (!showOnboarding && !showSettings && !showForm) {
                 NavigationBar {
                     tabs.forEach { tab ->
                         NavigationBarItem(
@@ -101,7 +109,9 @@ fun AppShell(startAtOnboarding: Boolean) {
         NavHost(
             navController = navController,
             startDestination = if (startAtOnboarding) OnboardingRoute else TodayRoute,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         ) {
             composable<OnboardingRoute> {
                 OnboardingScreenRoute(
@@ -112,7 +122,23 @@ fun AppShell(startAtOnboarding: Boolean) {
                     },
                 )
             }
-            composable<TodayRoute> { PlaceholderHeading(stringResource(R.string.tab_today)) }
+            composable<TodayRoute> {
+                // Temporary entry point until the real Today screen lands in M1.3.
+                Box(modifier = Modifier.fillMaxSize()) {
+                    PlaceholderHeading(stringResource(R.string.tab_today))
+                    ExtendedFloatingActionButton(
+                        onClick = { navController.navigate(ExpenseFormRoute()) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(Spacing.space4),
+                    ) {
+                        Text(stringResource(R.string.add_expense))
+                    }
+                }
+            }
+            composable<ExpenseFormRoute> {
+                ExpenseFormScreenRoute(onClose = { navController.popBackStack() })
+            }
             composable<ActivityRoute> { PlaceholderHeading(stringResource(R.string.tab_activity)) }
             composable<GroupsRoute> { PlaceholderHeading(stringResource(R.string.tab_groups)) }
             composable<InsightsRoute> { PlaceholderHeading(stringResource(R.string.tab_insights)) }

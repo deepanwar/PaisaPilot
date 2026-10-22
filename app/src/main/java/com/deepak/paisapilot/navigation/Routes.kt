@@ -19,3 +19,6 @@ data object InsightsRoute
 
 @Serializable
 data object SettingsRoute
+
+@Serializable
+data class ExpenseFormRoute(val expenseId: String? = null)

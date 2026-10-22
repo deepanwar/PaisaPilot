@@ -27,4 +27,11 @@ class UtcPickerConversionTest {
             TimeZone.setDefault(previous)
         }
     }
+
+    @Test
+    fun dateToPickerMillisRoundTrips() {
+        val date = LocalDate.of(2026, 10, 20)
+        assertEquals(date, localDateFromUtcPickerMillis(utcPickerMillisFromLocalDate(date)))
+        assertEquals(0L, utcPickerMillisFromLocalDate(LocalDate.of(1970, 1, 1)))
+    }
 }

@@ -6,3 +6,6 @@ import java.time.ZoneOffset
 
 fun localDateFromUtcPickerMillis(utcMillis: Long): LocalDate =
     Instant.ofEpochMilli(utcMillis).atOffset(ZoneOffset.UTC).toLocalDate()
+
+fun utcPickerMillisFromLocalDate(date: LocalDate): Long =
+    date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
