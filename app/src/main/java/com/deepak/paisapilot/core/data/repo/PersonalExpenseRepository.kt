@@ -38,6 +38,9 @@ interface PersonalExpenseRepository {
 
     fun observe(id: String): Flow<PersonalExpense?>
 
+    /** Every personal expense in stable order: date, createdAt, id (all descending). */
+    fun observeAll(): Flow<List<PersonalExpense>>
+
     fun observeMonth(range: MonthRange): Flow<List<PersonalExpense>>
 
     fun observeMonthTotal(range: MonthRange): Flow<Paise>

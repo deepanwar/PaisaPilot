@@ -83,6 +83,18 @@ Undo (G3): `UndoDeleteCoordinator` (singleton) keeps the last deleted personal e
 
 `ShellTopBar` marks its title as a heading. Placeholder screens no longer do, so each screen has one heading.
 
+### Activity feed (M2.1)
+
+`ActivityRepository` is the single source for the feed. Today it wraps personal expenses; M3 and M4 add shared expenses and settlements to its `combine`. Filtering runs in memory (`applyActivityFilter` in `:domain`), because a local ledger is small and the search rules stay in one tested place. Search is trimmed and case-insensitive over title, note and category label; a null title shows the category, so the label has to be searchable. Category labels reach the ViewModel through `CategoryLabelProvider`.
+
+The month filter is a plain dialog of months that have entries plus "All months", which avoids more experimental date-picker APIs. Filters live in `SavedStateHandle` and the list state uses `rememberSaveable`, so they survive tab switches, a detail screen and process death. The mixed feed shows no combined total; a total appears only when the scope is Personal.
+
+### Insights (M2.2)
+
+`summarizeMonth` in `:domain` builds the total, count and category rows from one month of expenses. Percentages are whole numbers rounded half up from integer paise and may sum to 99 or 101; amounts are authoritative. The view model reads one `observeMonth` query, so total, categories, count and the 5 recent rows cannot disagree. The category bars are decorative and hidden from accessibility.
+
+Tapping a category opens Activity for that month and category through `ActivityFilterRequests`, a singleton holding one pending filter. Navigation arguments would lose to the Activity tab's saved state, so `ActivityViewModel` takes the request and applies it through its normal, persisted filter update.
+
 ## Open
 
 - Review-balances trigger (G4). Pick before M4.

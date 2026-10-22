@@ -55,6 +55,9 @@ class RoomPersonalExpenseRepository(
     override fun observe(id: String): Flow<PersonalExpense?> =
         dao.observeById(id).map { it?.toDomain() }
 
+    override fun observeAll(): Flow<List<PersonalExpense>> =
+        dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
     override fun observeMonth(range: MonthRange): Flow<List<PersonalExpense>> =
         dao.observeBetween(range.start.toEpochDay(), range.endInclusive.toEpochDay())
             .map { rows -> rows.map { it.toDomain() } }

@@ -54,6 +54,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.deepak.paisapilot.R
+import com.deepak.paisapilot.feature.activity.ActivityRoute as ActivityScreenRoute
+import com.deepak.paisapilot.feature.insights.InsightsRoute as InsightsScreenRoute
 import com.deepak.paisapilot.feature.onboarding.OnboardingRoute as OnboardingScreenRoute
 import com.deepak.paisapilot.feature.personal.detail.ExpenseDetailRoute as ExpenseDetailScreenRoute
 import com.deepak.paisapilot.feature.personal.form.ExpenseFormRoute as ExpenseFormScreenRoute
@@ -148,9 +150,20 @@ fun AppShell(startAtOnboarding: Boolean) {
             composable<ExpenseFormRoute> {
                 ExpenseFormScreenRoute(onClose = { navController.popBackStack() })
             }
-            composable<ActivityRoute> { PlaceholderHeading(stringResource(R.string.tab_activity)) }
+            composable<ActivityRoute> {
+                ActivityScreenRoute(
+                    onAdd = { navController.navigate(ExpenseFormRoute()) },
+                    onOpenExpense = { navController.navigate(ExpenseDetailRoute(it)) },
+                )
+            }
             composable<GroupsRoute> { PlaceholderHeading(stringResource(R.string.tab_groups)) }
-            composable<InsightsRoute> { PlaceholderHeading(stringResource(R.string.tab_insights)) }
+            composable<InsightsRoute> {
+                InsightsScreenRoute(
+                    onOpenExpense = { navController.navigate(ExpenseDetailRoute(it)) },
+                    onShowCategoryInActivity = { navController.navigateToTab(ActivityRoute) },
+                    onAdd = { navController.navigate(ExpenseFormRoute()) },
+                )
+            }
             composable<SettingsRoute> { PlaceholderHeading(stringResource(R.string.settings_title)) }
         }
     }

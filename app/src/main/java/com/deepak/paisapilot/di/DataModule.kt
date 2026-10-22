@@ -5,8 +5,12 @@ import androidx.room.Room
 import com.deepak.paisapilot.core.data.db.LEDGER_DATABASE_NAME
 import com.deepak.paisapilot.core.data.db.LedgerDatabase
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
+import com.deepak.paisapilot.core.data.repo.ActivityRepository
+import com.deepak.paisapilot.core.data.repo.DefaultActivityRepository
 import com.deepak.paisapilot.core.data.repo.PersonalExpenseRepository
 import com.deepak.paisapilot.core.data.repo.RoomPersonalExpenseRepository
+import com.deepak.paisapilot.feature.personal.CategoryLabelProvider
+import com.deepak.paisapilot.feature.personal.ResourceCategoryLabelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,4 +37,14 @@ object DataModule {
         dao: PersonalExpenseDao,
         clock: Clock,
     ): PersonalExpenseRepository = RoomPersonalExpenseRepository(dao, clock)
+
+    @Provides
+    @Singleton
+    fun provideActivityRepository(personal: PersonalExpenseRepository): ActivityRepository =
+        DefaultActivityRepository(personal)
+
+    @Provides
+    @Singleton
+    fun provideCategoryLabels(@ApplicationContext context: Context): CategoryLabelProvider =
+        ResourceCategoryLabelProvider(context)
 }

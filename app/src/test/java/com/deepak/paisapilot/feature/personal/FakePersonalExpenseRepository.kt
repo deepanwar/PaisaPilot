@@ -50,6 +50,21 @@ class FakePersonalExpenseRepository : PersonalExpenseRepository {
         return rows.map { it[id] }
     }
 
+    var throwOnObserveAll = false
+
+    override fun observeAll(): Flow<List<PersonalExpense>> =
+        if (throwOnObserveAll) {
+            kotlinx.coroutines.flow.flow { throw IOException("read failed") }
+        } else {
+            rows.map { all ->
+                all.values.sortedWith(
+                    compareByDescending<PersonalExpense> { it.date }
+                        .thenByDescending { it.createdAt }
+                        .thenByDescending { it.id },
+                )
+            }
+        }
+
     override fun observeMonth(range: MonthRange): Flow<List<PersonalExpense>> =
         if (throwOnObserveMonth) kotlinx.coroutines.flow.flow { throw IOException("read failed") } else rows.map { all ->
             all.values.filter { it.date in range.start..range.endInclusive }

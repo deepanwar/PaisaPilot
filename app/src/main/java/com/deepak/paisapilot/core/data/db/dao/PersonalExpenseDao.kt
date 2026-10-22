@@ -27,6 +27,12 @@ interface PersonalExpenseDao {
 
     @Query(
         "SELECT * FROM personal_expense " +
+            "ORDER BY occurred_epoch_day DESC, created_at DESC, id DESC",
+    )
+    fun observeAll(): Flow<List<PersonalExpenseEntity>>
+
+    @Query(
+        "SELECT * FROM personal_expense " +
             "WHERE occurred_epoch_day BETWEEN :startDay AND :endDay " +
             "ORDER BY occurred_epoch_day DESC, created_at DESC, id DESC",
     )
