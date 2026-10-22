@@ -75,6 +75,14 @@ Navigation Compose 2.10.2 with the Kotlin serialization plugin 2.4.21 and `kotli
 
 `DatePickerDialog`, `DatePicker`, `rememberDatePickerState` and `SelectableDates` are `@ExperimentalMaterial3Api` in Material 3 1.4.0. `core/ui/DateSelectDialog.kt` is the only file that opts in. It uses the millisecond API and converts with `ZoneOffset.UTC` (G2). The expense form draws its own plain `TopAppBar` (same opt-in as `ShellTopBar`) so its back arrow can run the discard prompt. The shell hides its top and bottom bars on that route and consumes the Scaffold insets so the IME padding in `StickySaveBar` is applied once.
 
+### Today, detail and Undo (M1.3)
+
+Today lists the 10 newest rows of the selected month (`RECENT_LIMIT`); the hero total counts every row. "View all activity" opens the Activity tab when more exist. The "Shared groups" link is left out until M3. The selected month is kept in `SavedStateHandle` and can move between 2000-01 and 2100-12.
+
+Undo (G3): `UndoDeleteCoordinator` (singleton) keeps the last deleted personal expense in memory. The detail screen offers it after a successful delete. `UndoSnackbarEffect` in the shell shows the snackbar, so it works whatever screen the detail pops to. Undo calls `restore`, which re-inserts the same id and timestamps. A late dismissal cannot clear a newer snapshot. The snapshot is lost if the process dies.
+
+`ShellTopBar` marks its title as a heading. Placeholder screens no longer do, so each screen has one heading.
+
 ## Open
 
 - Review-balances trigger (G4). Pick before M4.

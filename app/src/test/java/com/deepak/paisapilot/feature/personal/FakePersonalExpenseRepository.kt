@@ -17,6 +17,8 @@ class FakePersonalExpenseRepository : PersonalExpenseRepository {
     var updates = 0
     var throwOnWrite = false
     var throwOnRead = false
+    var throwOnDelete = false
+    var throwOnObserveMonth = false
 
     override suspend fun create(expense: PersonalExpense): SaveResult {
         creates += 1
@@ -35,6 +37,7 @@ class FakePersonalExpenseRepository : PersonalExpenseRepository {
     }
 
     override suspend fun delete(id: String): Boolean {
+        if (throwOnDelete) throw IOException("delete failed")
         val had = rows.value.containsKey(id)
         rows.value = rows.value - id
         return had
@@ -43,13 +46,14 @@ class FakePersonalExpenseRepository : PersonalExpenseRepository {
     override suspend fun restore(expense: PersonalExpense): SaveResult = create(expense)
 
     override fun observe(id: String): Flow<PersonalExpense?> {
-        if (throwOnRead) throw IOException("read failed")
+        if (throwOnRead) return kotlinx.coroutines.flow.flow { throw IOException("read failed") }
         return rows.map { it[id] }
     }
 
     override fun observeMonth(range: MonthRange): Flow<List<PersonalExpense>> =
-        rows.map { all ->
+        if (throwOnObserveMonth) kotlinx.coroutines.flow.flow { throw IOException("read failed") } else rows.map { all ->
             all.values.filter { it.date in range.start..range.endInclusive }
+                .sortedWith(compareByDescending<PersonalExpense> { it.date }.thenByDescending { it.createdAt }.thenByDescending { it.id })
         }
 
     override fun observeMonthTotal(range: MonthRange): Flow<Paise> =

@@ -22,7 +22,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.deepak.paisapilot.core.data.IdGenerator
 import com.deepak.paisapilot.core.data.db.LedgerDatabase
 import com.deepak.paisapilot.core.data.repo.RoomPersonalExpenseRepository
@@ -129,17 +128,13 @@ class ExpenseFormTest {
     fun dirtyBackAsksToDiscardAndKeepEditingRetainsContent() {
         launch()
         amountField().performTextInput("77")
-        InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            rule.activity.onBackPressedDispatcher.onBackPressed()
-        }
+        rule.runOnIdle { rule.activity.onBackPressedDispatcher.onBackPressed() }
         rule.onNodeWithText("Discard changes?").assertIsDisplayed()
         rule.onNode(hasText("Cancel") and hasClickAction()).performClick()
         rule.onNodeWithText("Discard changes?").assertDoesNotExist()
         rule.onNodeWithText("77").assertIsDisplayed()
         assertEquals(0, closed)
-        InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            rule.activity.onBackPressedDispatcher.onBackPressed()
-        }
+        rule.runOnIdle { rule.activity.onBackPressedDispatcher.onBackPressed() }
         rule.onNode(hasText("Discard") and hasClickAction()).performClick()
         assertEquals(1, closed)
         assertTrue(rows().isEmpty())
