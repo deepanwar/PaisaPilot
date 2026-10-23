@@ -3,10 +3,16 @@ package com.deepak.paisapilot.di
 import android.content.Context
 import androidx.room.Room
 import com.deepak.paisapilot.core.data.db.LEDGER_DATABASE_NAME
+import com.deepak.paisapilot.core.data.IdGenerator
 import com.deepak.paisapilot.core.data.db.LedgerDatabase
+import com.deepak.paisapilot.core.data.db.RoomTransactionRunner
+import com.deepak.paisapilot.core.data.db.TransactionRunner
+import com.deepak.paisapilot.core.data.db.dao.GroupDao
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
 import com.deepak.paisapilot.core.data.repo.ActivityRepository
 import com.deepak.paisapilot.core.data.repo.DefaultActivityRepository
+import com.deepak.paisapilot.core.data.repo.GroupRepository
+import com.deepak.paisapilot.core.data.repo.RoomGroupRepository
 import com.deepak.paisapilot.core.data.repo.PersonalExpenseRepository
 import com.deepak.paisapilot.core.data.repo.RoomPersonalExpenseRepository
 import com.deepak.paisapilot.feature.personal.CategoryLabelProvider
@@ -30,6 +36,23 @@ object DataModule {
     @Provides
     fun providePersonalExpenseDao(database: LedgerDatabase): PersonalExpenseDao =
         database.personalExpenseDao()
+
+    @Provides
+    fun provideGroupDao(database: LedgerDatabase): GroupDao = database.groupDao()
+
+    @Provides
+    @Singleton
+    fun provideTransactionRunner(database: LedgerDatabase): TransactionRunner =
+        RoomTransactionRunner(database)
+
+    @Provides
+    @Singleton
+    fun provideGroupRepository(
+        dao: GroupDao,
+        transactions: TransactionRunner,
+        clock: Clock,
+        idGenerator: IdGenerator,
+    ): GroupRepository = RoomGroupRepository(dao, transactions, clock, idGenerator)
 
     @Provides
     @Singleton

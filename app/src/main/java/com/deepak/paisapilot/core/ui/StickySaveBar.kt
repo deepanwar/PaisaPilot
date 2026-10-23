@@ -27,6 +27,7 @@ fun StickySaveBar(
     enabled: Boolean,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
+    label: String = stringResource(R.string.save),
 ) {
     Surface(
         modifier = modifier.windowInsetsPadding(
@@ -42,7 +43,7 @@ fun StickySaveBar(
                 .heightIn(min = 56.dp),
             shape = PillShape,
         ) {
-            Text(stringResource(R.string.save))
+            Text(label)
         }
     }
 }

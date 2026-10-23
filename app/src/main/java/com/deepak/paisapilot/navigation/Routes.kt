@@ -25,3 +25,9 @@ data class ExpenseFormRoute(val expenseId: String? = null)
 
 @Serializable
 data class ExpenseDetailRoute(val expenseId: String)
+
+@Serializable
+data object NewGroupRoute
+
+@Serializable
+data class GroupDetailRoute(val groupId: String)

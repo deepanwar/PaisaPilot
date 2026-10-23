@@ -55,6 +55,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.deepak.paisapilot.R
 import com.deepak.paisapilot.feature.activity.ActivityRoute as ActivityScreenRoute
+import com.deepak.paisapilot.feature.groups.detail.GroupDetailRoute as GroupDetailScreenRoute
+import com.deepak.paisapilot.feature.groups.form.GroupFormRoute as GroupFormScreenRoute
+import com.deepak.paisapilot.feature.groups.list.GroupListRoute as GroupListScreenRoute
 import com.deepak.paisapilot.feature.insights.InsightsRoute as InsightsScreenRoute
 import com.deepak.paisapilot.feature.onboarding.OnboardingRoute as OnboardingScreenRoute
 import com.deepak.paisapilot.feature.personal.detail.ExpenseDetailRoute as ExpenseDetailScreenRoute
@@ -77,7 +80,9 @@ fun AppShell(startAtOnboarding: Boolean) {
         (destination == null && startAtOnboarding)
     val showSettings = destination?.hasRoute<SettingsRoute>() == true
     val showForm = destination?.hasRoute<ExpenseFormRoute>() == true ||
-        destination?.hasRoute<ExpenseDetailRoute>() == true
+        destination?.hasRoute<ExpenseDetailRoute>() == true ||
+        destination?.hasRoute<NewGroupRoute>() == true ||
+        destination?.hasRoute<GroupDetailRoute>() == true
     val tabs = shellTabs()
     val snackbarHostState = remember { SnackbarHostState() }
     val activity = LocalActivity.current
@@ -156,7 +161,25 @@ fun AppShell(startAtOnboarding: Boolean) {
                     onOpenExpense = { navController.navigate(ExpenseDetailRoute(it)) },
                 )
             }
-            composable<GroupsRoute> { PlaceholderHeading(stringResource(R.string.tab_groups)) }
+            composable<GroupsRoute> {
+                GroupListScreenRoute(
+                    onNewGroup = { navController.navigate(NewGroupRoute) },
+                    onOpenGroup = { navController.navigate(GroupDetailRoute(it)) },
+                )
+            }
+            composable<NewGroupRoute> {
+                GroupFormScreenRoute(
+                    onClose = { navController.popBackStack() },
+                    onCreated = { id ->
+                        navController.navigate(GroupDetailRoute(id)) {
+                            popUpTo<NewGroupRoute> { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable<GroupDetailRoute> {
+                GroupDetailScreenRoute(onClose = { navController.popBackStack() })
+            }
             composable<InsightsRoute> {
                 InsightsScreenRoute(
                     onOpenExpense = { navController.navigate(ExpenseDetailRoute(it)) },

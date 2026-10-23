@@ -2,6 +2,7 @@ package com.deepak.paisapilot.core.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.deepak.paisapilot.core.data.db.dao.GroupDao
 import com.deepak.paisapilot.core.data.db.dao.LedgerSchemaDao
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
 import com.deepak.paisapilot.core.data.db.entity.ExpenseGroupEntity
@@ -29,4 +30,6 @@ abstract class LedgerDatabase : RoomDatabase() {
     abstract fun schemaDao(): LedgerSchemaDao
 
     abstract fun personalExpenseDao(): PersonalExpenseDao
+
+    abstract fun groupDao(): GroupDao
 }
