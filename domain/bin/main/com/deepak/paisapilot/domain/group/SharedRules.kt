@@ -1,6 +1,5 @@
 package com.deepak.paisapilot.domain.group
 
-import com.deepak.paisapilot.domain.common.StableIdOrder
 import com.deepak.paisapilot.domain.money.MoneyLimits
 import com.deepak.paisapilot.domain.money.Paise
 import com.deepak.paisapilot.domain.personal.MAX_NOTE_LENGTH
@@ -66,16 +65,5 @@ fun validateSharedExpense(expense: SharedExpense): SharedValidation {
 fun seedExactFromEqual(total: Paise, beneficiaryIds: List<String>): List<Share> =
     (splitEqually(total, beneficiaryIds) as? SplitResult.Success)?.shares.orEmpty()
 
-/**
- * Signed net paise per member: payer is credited the full amount, each share is a debit.
- * A payer who is also a beneficiary nets to amount - own share. Sums to zero. Preview only until
- * the M4 balance engine; settlements are not considered.
- */
-fun computeNets(expenses: List<SharedExpense>): Map<String, Long> {
-    val nets = HashMap<String, Long>()
-    for (expense in expenses) {
-        nets.merge(expense.payerMemberId, expense.amount.value, Long::plus)
-        for (share in expense.shares) nets.merge(share.memberId, -share.paise.value, Long::plus)
-    }
-    return nets.toSortedMap(StableIdOrder)
-}
+/** Expense-only nets; see [computeExpenseNets]. Settlement-aware nets: [computeNets]. */
+fun computeNets(expenses: List<SharedExpense>): Map<String, Long> = computeExpenseNets(expenses)
