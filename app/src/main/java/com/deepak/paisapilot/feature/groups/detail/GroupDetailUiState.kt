@@ -23,6 +23,16 @@ data class GroupEventUi(
     val payerIsOwner: Boolean,
 )
 
+data class SettlementEventUi(
+    val id: String,
+    val fromName: String,
+    val fromIsOwner: Boolean,
+    val toName: String,
+    val toIsOwner: Boolean,
+    val amount: Paise,
+    val date: LocalDate,
+)
+
 enum class DetailStatus { Loading, Content, NotFound, Error }
 
 data class GroupDetailUiState(
@@ -33,10 +43,9 @@ data class GroupDetailUiState(
     val canRecordShared: Boolean = false,
     /** Newest first. */
     val events: List<GroupEventUi> = emptyList(),
-    /**
-     * Local owner's net across all shared expenses: positive = owed to them. Exact until
-     * settlements exist (M4 balance engine replaces this).
-     */
+    /** Recorded settlements, newest first. Not group spending. */
+    val settlements: List<SettlementEventUi> = emptyList(),
+    /** Local owner's net across all shared expenses and settlements: positive = owed to them. */
     val ownerNetPaise: Long = 0L,
     val canDelete: Boolean = false,
     val month: MonthRange? = null,

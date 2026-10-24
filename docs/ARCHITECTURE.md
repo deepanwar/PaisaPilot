@@ -426,9 +426,9 @@ Manual checks for M0: airplane mode first run, dark and light themes, TalkBack r
 28. [ ] Re-check Material 3 1.5.0 status and decide whether to adopt it.
 
 **M4 — Balances and settlements**
-29. [ ] Write `BalanceCalculator`, `SettlementSuggester` and `ReviewDetector`, with property tests that Σnet = 0.
-30. [ ] Settlement repository: recompute and validate inside the transaction.
-31. [ ] BAL-01, SET-01 and SET-02, including the "Review balances" advisory.
+29. [x] Write `BalanceCalculator`, `SettlementSuggester` and `ReviewDetector`, with property tests that Σnet = 0.
+30. [x] Settlement repository: recompute and validate inside the transaction.
+31. [x] BAL-01, SET-01 and SET-02, including the "Review balances" advisory.
 
 **M5 — Hardening and release**
 32. [ ] TalkBack pass, 200% font, 48dp targets, spoken money format (G11).

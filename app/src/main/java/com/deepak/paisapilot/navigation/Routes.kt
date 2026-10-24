@@ -37,3 +37,18 @@ data class SharedFormRoute(val groupId: String, val expenseId: String? = null)
 
 @Serializable
 data class SharedDetailRoute(val groupId: String, val expenseId: String)
+
+@Serializable
+data class BalancesRoute(val groupId: String)
+
+@Serializable
+data class SettlementFormRoute(
+    val groupId: String,
+    val settlementId: String? = null,
+    val fromId: String? = null,
+    val toId: String? = null,
+    val amountPaise: Long? = null,
+)
+
+@Serializable
+data class SettlementDetailRoute(val groupId: String, val settlementId: String)

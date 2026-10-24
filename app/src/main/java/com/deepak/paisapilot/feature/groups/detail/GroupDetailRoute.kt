@@ -11,6 +11,8 @@ fun GroupDetailRoute(
     onClose: () -> Unit,
     onAddShared: () -> Unit,
     onOpenShared: (String) -> Unit,
+    onOpenBalances: () -> Unit,
+    onOpenSettlement: (String) -> Unit,
     viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -35,5 +37,7 @@ fun GroupDetailRoute(
         onSetMemberActive = viewModel::onSetMemberActive,
         onAddShared = onAddShared,
         onOpenShared = onOpenShared,
+        onOpenBalances = onOpenBalances,
+        onOpenSettlement = onOpenSettlement,
     )
 }

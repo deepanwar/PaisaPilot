@@ -7,10 +7,15 @@ import com.deepak.paisapilot.core.data.prefs.SettingsRepository
 import com.deepak.paisapilot.core.data.repo.AddMemberResult
 import com.deepak.paisapilot.core.data.repo.GroupActionResult
 import com.deepak.paisapilot.core.data.repo.GroupRepository
+import com.deepak.paisapilot.core.data.repo.SettlementRepository
 import com.deepak.paisapilot.core.data.repo.SharedExpenseRepository
 import com.deepak.paisapilot.domain.group.MemberNameResult
+import com.deepak.paisapilot.domain.group.Settlement
+import com.deepak.paisapilot.domain.group.SharedExpense
 import com.deepak.paisapilot.domain.group.canRecordSharedExpense
 import com.deepak.paisapilot.domain.group.computeNets
+import com.deepak.paisapilot.domain.money.Paise
+import com.deepak.paisapilot.domain.time.MonthRange
 import com.deepak.paisapilot.domain.time.monthContaining
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -34,6 +39,13 @@ private const val KEY_MONTH_START = "groupMonthStart"
 private val EARLIEST_MONTH: LocalDate = LocalDate.of(2000, 1, 1)
 private val LATEST_MONTH: LocalDate = LocalDate.of(2100, 12, 1)
 
+private data class Feed(
+    val monthTotal: Paise,
+    val range: MonthRange,
+    val expenses: List<SharedExpense>,
+    val settlements: List<Settlement>,
+)
+
 /** Dialog and busy flags kept apart from the data streams, merged in [state]. */
 private data class Overlay(
     val showArchiveDialog: Boolean = false,
@@ -52,6 +64,7 @@ class GroupDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: GroupRepository,
     private val sharedRepository: SharedExpenseRepository,
+    private val settlementRepository: SettlementRepository,
     settings: SettingsRepository,
     clock: Clock,
 ) : ViewModel() {
@@ -74,13 +87,14 @@ class GroupDetailViewModel @Inject constructor(
                 combine(
                     repository.observeMonthTotal(groupId, range),
                     sharedRepository.observeGroup(groupId),
-                ) { total, expenses -> Triple(total, range, expenses) }
+                    settlementRepository.observeGroup(groupId),
+                ) { total, expenses, settlements -> Feed(total, range, expenses, settlements) }
             },
         ) { group, members, userSettings, hasHistory, monthAndEvents ->
             if (group == null) {
                 GroupDetailUiState(status = DetailStatus.NotFound)
             } else {
-                val (total, range, expenses) = monthAndEvents
+                val (total, range, expenses, settlements) = monthAndEvents
                 val byId = members.associateBy { it.id }
                 val owner = members.firstOrNull { it.isLocalOwner }
                 // G7: the owner shows the live profile name, not the stored copy.
@@ -112,7 +126,18 @@ class GroupDetailViewModel @Inject constructor(
                             payerIsOwner = byId[it.payerMemberId]?.isLocalOwner == true,
                         )
                     },
-                    ownerNetPaise = owner?.let { computeNets(expenses)[it.id] } ?: 0L,
+                    settlements = settlements.map {
+                        SettlementEventUi(
+                            id = it.id,
+                            fromName = nameOf(it.fromMemberId),
+                            fromIsOwner = byId[it.fromMemberId]?.isLocalOwner == true,
+                            toName = nameOf(it.toMemberId),
+                            toIsOwner = byId[it.toMemberId]?.isLocalOwner == true,
+                            amount = it.amount,
+                            date = LocalDate.ofEpochDay(it.occurredEpochDay),
+                        )
+                    },
+                    ownerNetPaise = owner?.let { computeNets(expenses, settlements)[it.id] } ?: 0L,
                     canDelete = !hasHistory,
                     month = range,
                     isCurrentMonth = range.start == currentMonthStart,

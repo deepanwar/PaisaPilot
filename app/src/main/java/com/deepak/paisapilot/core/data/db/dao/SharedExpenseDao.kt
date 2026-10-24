@@ -29,6 +29,9 @@ interface SharedExpenseDao {
     @Query("SELECT * FROM shared_expense WHERE id = :id")
     suspend fun getExpense(id: String): SharedExpenseEntity?
 
+    @Query("SELECT * FROM shared_expense WHERE group_id = :groupId")
+    suspend fun getGroupExpenses(groupId: String): List<SharedExpenseEntity>
+
     @Query("SELECT * FROM expense_share WHERE shared_expense_id = :expenseId")
     suspend fun getShares(expenseId: String): List<ExpenseShareEntity>
 

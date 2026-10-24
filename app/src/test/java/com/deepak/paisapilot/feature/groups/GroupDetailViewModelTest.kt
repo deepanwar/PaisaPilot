@@ -14,6 +14,7 @@ import com.deepak.paisapilot.feature.groups.list.GroupListViewModel
 import com.deepak.paisapilot.feature.onboarding.FakeSettingsRepository
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,6 +56,7 @@ class GroupDetailViewModelTest {
             SavedStateHandle(mapOf("groupId" to "g")),
             repo,
             FakeSharedExpenseRepository(),
+            FakeSettlementRepository(),
             FakeSettingsRepository(),
             clock,
         )
@@ -65,6 +67,61 @@ class GroupDetailViewModelTest {
         var item = awaitItem()
         while (item.status != DetailStatus.Content || !check(item)) item = awaitItem()
         return item
+    }
+
+    // AC-BAL-02: settlements move the owner net; the list shows them as settlements, not spending.
+    @Test
+    fun ownerNetIncludesSettlementsAndSettlementsAreListed() = detailTest {
+        val shared = FakeSharedExpenseRepository().apply {
+            expenses.value = listOf(
+                com.deepak.paisapilot.domain.group.SharedExpense(
+                    id = "e1",
+                    groupId = "g",
+                    amount = com.deepak.paisapilot.domain.money.Paise(10_000),
+                    title = null,
+                    category = com.deepak.paisapilot.domain.personal.Category.Food,
+                    date = LocalDate.of(2026, 10, 18),
+                    payerMemberId = "o",
+                    note = null,
+                    shares = listOf(
+                        com.deepak.paisapilot.domain.group.Share("a", com.deepak.paisapilot.domain.money.Paise(10_000)),
+                    ),
+                    createdAt = 1L,
+                    updatedAt = 1L,
+                ),
+            )
+        }
+        val settlements = FakeSettlementRepository().apply {
+            this.settlements.value = listOf(
+                com.deepak.paisapilot.domain.group.Settlement(
+                    id = "s1",
+                    groupId = "g",
+                    fromMemberId = "a",
+                    toMemberId = "o",
+                    amount = com.deepak.paisapilot.domain.money.Paise(4_000),
+                    occurredEpochDay = LocalDate.of(2026, 10, 19).toEpochDay(),
+                    note = null,
+                    createdAt = 1L,
+                    updatedAt = 1L,
+                ),
+            )
+        }
+        val vm = GroupDetailViewModel(
+            SavedStateHandle(mapOf("groupId" to "g")),
+            seeded(),
+            shared,
+            settlements,
+            FakeSettingsRepository(),
+            clock,
+        )
+        vm.state.test {
+            val state = content { it.ownerNetPaise == 6_000L }
+            assertEquals(listOf("s1"), state.settlements.map { it.id })
+            assertEquals("Alex", state.settlements.single().fromName)
+            assertTrue(state.settlements.single().toIsOwner)
+            assertEquals(1, state.events.size)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test

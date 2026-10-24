@@ -95,7 +95,15 @@ The month filter is a plain dialog of months that have entries plus "All months"
 
 Tapping a category opens Activity for that month and category through `ActivityFilterRequests`, a singleton holding one pending filter. Navigation arguments would lose to the Activity tab's saved state, so `ActivityViewModel` takes the request and applies it through its normal, persisted filter update.
 
+### Balances and settlements (M4)
+
+`computeExpenseNets` (E) and `computeNets` (N, with settlements) are checked-arithmetic top-level functions in `:domain`, as are `suggestSettlements` and `needsBalanceReview`. The "Review balances" trigger (G4) is signed off as written in ARCHITECTURE: flag the group if any member has N != 0 with the opposite sign to E, or E = 0 and N != 0. It is informational only and never changes a recorded settlement.
+
+`validateSettlement` checks a new settlement against the suggestions derived from the stored expenses and the other settlements, so the pair must be a current suggested pair and the amount at most the suggestion. An edit is checked against balances that exclude the record being edited. A legacy edit keeps the same pair and may lower the amount even when later expense edits mean the pair is no longer suggested. `RoomSettlementRepository` recomputes and validates inside the write transaction.
+
+Group detail lists settlements in their own "Settlements" section, not mixed into the shared-expense list, so they are never read as group spending. Settlements in the Activity feed and a real owner net on the group list rows are not part of M4.
+
 ## Open
 
-- Review-balances trigger (G4). Pick before M4.
+
 - Material 3 1.5.0. Re-check at the start of M3. v1 stays on the stable 1.4.0 line from the BOM until then.

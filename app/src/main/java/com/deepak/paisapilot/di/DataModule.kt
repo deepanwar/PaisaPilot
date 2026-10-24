@@ -9,6 +9,7 @@ import com.deepak.paisapilot.core.data.db.RoomTransactionRunner
 import com.deepak.paisapilot.core.data.db.TransactionRunner
 import com.deepak.paisapilot.core.data.db.dao.GroupDao
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
+import com.deepak.paisapilot.core.data.db.dao.SettlementDao
 import com.deepak.paisapilot.core.data.db.dao.SharedExpenseDao
 import com.deepak.paisapilot.core.data.repo.ActivityRepository
 import com.deepak.paisapilot.core.data.repo.DefaultActivityRepository
@@ -16,7 +17,9 @@ import com.deepak.paisapilot.core.data.repo.GroupRepository
 import com.deepak.paisapilot.core.data.repo.RoomGroupRepository
 import com.deepak.paisapilot.core.data.repo.PersonalExpenseRepository
 import com.deepak.paisapilot.core.data.repo.RoomPersonalExpenseRepository
+import com.deepak.paisapilot.core.data.repo.RoomSettlementRepository
 import com.deepak.paisapilot.core.data.repo.RoomSharedExpenseRepository
+import com.deepak.paisapilot.core.data.repo.SettlementRepository
 import com.deepak.paisapilot.core.data.repo.SharedExpenseRepository
 import com.deepak.paisapilot.feature.personal.CategoryLabelProvider
 import com.deepak.paisapilot.feature.personal.ResourceCategoryLabelProvider
@@ -48,6 +51,9 @@ object DataModule {
         database.sharedExpenseDao()
 
     @Provides
+    fun provideSettlementDao(database: LedgerDatabase): SettlementDao = database.settlementDao()
+
+    @Provides
     @Singleton
     fun provideTransactionRunner(database: LedgerDatabase): TransactionRunner =
         RoomTransactionRunner(database)
@@ -76,6 +82,16 @@ object DataModule {
         transactions: TransactionRunner,
         clock: Clock,
     ): SharedExpenseRepository = RoomSharedExpenseRepository(dao, groupDao, transactions, clock)
+
+    @Provides
+    @Singleton
+    fun provideSettlementRepository(
+        dao: SettlementDao,
+        expenseDao: SharedExpenseDao,
+        groupDao: GroupDao,
+        transactions: TransactionRunner,
+        clock: Clock,
+    ): SettlementRepository = RoomSettlementRepository(dao, expenseDao, groupDao, transactions, clock)
 
     @Provides
     @Singleton

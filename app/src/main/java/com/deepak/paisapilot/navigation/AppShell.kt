@@ -56,7 +56,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.deepak.paisapilot.R
 import com.deepak.paisapilot.feature.activity.ActivityRoute as ActivityScreenRoute
+import com.deepak.paisapilot.feature.groups.balances.BalancesRoute as BalancesScreenRoute
 import com.deepak.paisapilot.feature.groups.detail.GroupDetailRoute as GroupDetailScreenRoute
+import com.deepak.paisapilot.feature.groups.settlements.detail.SettlementDetailRoute as SettlementDetailScreenRoute
+import com.deepak.paisapilot.feature.groups.settlements.form.SettlementFormRoute as SettlementFormScreenRoute
 import com.deepak.paisapilot.feature.groups.shared.detail.SharedDetailRoute as SharedDetailScreenRoute
 import com.deepak.paisapilot.feature.groups.shared.form.SharedFormRoute as SharedFormScreenRoute
 import com.deepak.paisapilot.feature.groups.form.GroupFormRoute as GroupFormScreenRoute
@@ -87,7 +90,10 @@ fun AppShell(startAtOnboarding: Boolean) {
         destination?.hasRoute<NewGroupRoute>() == true ||
         destination?.hasRoute<GroupDetailRoute>() == true ||
         destination?.hasRoute<SharedFormRoute>() == true ||
-        destination?.hasRoute<SharedDetailRoute>() == true
+        destination?.hasRoute<SharedDetailRoute>() == true ||
+        destination?.hasRoute<BalancesRoute>() == true ||
+        destination?.hasRoute<SettlementFormRoute>() == true ||
+        destination?.hasRoute<SettlementDetailRoute>() == true
     val tabs = shellTabs()
     val snackbarHostState = remember { SnackbarHostState() }
     val activity = LocalActivity.current
@@ -188,6 +194,8 @@ fun AppShell(startAtOnboarding: Boolean) {
                     onClose = { navController.popBackStack() },
                     onAddShared = { navController.navigate(SharedFormRoute(groupId)) },
                     onOpenShared = { navController.navigate(SharedDetailRoute(groupId, it)) },
+                    onOpenBalances = { navController.navigate(BalancesRoute(groupId)) },
+                    onOpenSettlement = { navController.navigate(SettlementDetailRoute(groupId, it)) },
                 )
             }
             composable<SharedFormRoute> {
@@ -198,6 +206,25 @@ fun AppShell(startAtOnboarding: Boolean) {
                 SharedDetailScreenRoute(
                     onClose = { navController.popBackStack() },
                     onEdit = { navController.navigate(SharedFormRoute(route.groupId, it)) },
+                )
+            }
+            composable<BalancesRoute> { entry ->
+                val groupId = entry.toRoute<BalancesRoute>().groupId
+                BalancesScreenRoute(
+                    onClose = { navController.popBackStack() },
+                    onRecord = { from, to, amount ->
+                        navController.navigate(SettlementFormRoute(groupId, null, from, to, amount))
+                    },
+                )
+            }
+            composable<SettlementFormRoute> {
+                SettlementFormScreenRoute(onClose = { navController.popBackStack() })
+            }
+            composable<SettlementDetailRoute> { entry ->
+                val route = entry.toRoute<SettlementDetailRoute>()
+                SettlementDetailScreenRoute(
+                    onClose = { navController.popBackStack() },
+                    onEdit = { navController.navigate(SettlementFormRoute(route.groupId, it)) },
                 )
             }
             composable<InsightsRoute> {
