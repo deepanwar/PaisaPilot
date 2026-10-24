@@ -51,7 +51,13 @@ class GroupDetailViewModelTest {
     }
 
     private fun vm(repo: GroupRepository) =
-        GroupDetailViewModel(SavedStateHandle(mapOf("groupId" to "g")), repo, FakeSettingsRepository(), clock)
+        GroupDetailViewModel(
+            SavedStateHandle(mapOf("groupId" to "g")),
+            repo,
+            FakeSharedExpenseRepository(),
+            FakeSettingsRepository(),
+            clock,
+        )
 
     private suspend fun app.cash.turbine.ReceiveTurbine<GroupDetailUiState>.content(
         check: (GroupDetailUiState) -> Boolean = { true },

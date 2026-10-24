@@ -7,8 +7,10 @@ import com.deepak.paisapilot.core.data.prefs.SettingsRepository
 import com.deepak.paisapilot.core.data.repo.AddMemberResult
 import com.deepak.paisapilot.core.data.repo.GroupActionResult
 import com.deepak.paisapilot.core.data.repo.GroupRepository
+import com.deepak.paisapilot.core.data.repo.SharedExpenseRepository
 import com.deepak.paisapilot.domain.group.MemberNameResult
 import com.deepak.paisapilot.domain.group.canRecordSharedExpense
+import com.deepak.paisapilot.domain.group.computeNets
 import com.deepak.paisapilot.domain.time.monthContaining
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -49,6 +51,7 @@ private data class Overlay(
 class GroupDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: GroupRepository,
+    private val sharedRepository: SharedExpenseRepository,
     settings: SettingsRepository,
     clock: Clock,
 ) : ViewModel() {
@@ -68,13 +71,22 @@ class GroupDetailViewModel @Inject constructor(
             repository.observeHasHistory(groupId),
             monthStart.flatMapLatest { start ->
                 val range = monthContaining(start)
-                repository.observeMonthTotal(groupId, range).map { total -> total to range }
+                combine(
+                    repository.observeMonthTotal(groupId, range),
+                    sharedRepository.observeGroup(groupId),
+                ) { total, expenses -> Triple(total, range, expenses) }
             },
-        ) { group, members, userSettings, hasHistory, totalAndRange ->
+        ) { group, members, userSettings, hasHistory, monthAndEvents ->
             if (group == null) {
                 GroupDetailUiState(status = DetailStatus.NotFound)
             } else {
-                val (total, range) = totalAndRange
+                val (total, range, expenses) = monthAndEvents
+                val byId = members.associateBy { it.id }
+                val owner = members.firstOrNull { it.isLocalOwner }
+                // G7: the owner shows the live profile name, not the stored copy.
+                fun nameOf(id: String): String = byId[id]?.let {
+                    if (it.isLocalOwner) userSettings.displayName else it.name
+                }.orEmpty()
                 GroupDetailUiState(
                     status = DetailStatus.Content,
                     name = group.name,
@@ -89,6 +101,18 @@ class GroupDetailViewModel @Inject constructor(
                         )
                     },
                     canRecordShared = !group.isArchived && canRecordSharedExpense(members),
+                    events = expenses.map {
+                        GroupEventUi(
+                            id = it.id,
+                            title = it.title,
+                            category = it.category,
+                            amount = it.amount,
+                            date = it.date,
+                            payerName = nameOf(it.payerMemberId),
+                            payerIsOwner = byId[it.payerMemberId]?.isLocalOwner == true,
+                        )
+                    },
+                    ownerNetPaise = owner?.let { computeNets(expenses)[it.id] } ?: 0L,
                     canDelete = !hasHistory,
                     month = range,
                     isCurrentMonth = range.start == currentMonthStart,

@@ -31,3 +31,9 @@ data object NewGroupRoute
 
 @Serializable
 data class GroupDetailRoute(val groupId: String)
+
+@Serializable
+data class SharedFormRoute(val groupId: String, val expenseId: String? = null)
+
+@Serializable
+data class SharedDetailRoute(val groupId: String, val expenseId: String)

@@ -53,9 +53,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.deepak.paisapilot.R
 import com.deepak.paisapilot.feature.activity.ActivityRoute as ActivityScreenRoute
 import com.deepak.paisapilot.feature.groups.detail.GroupDetailRoute as GroupDetailScreenRoute
+import com.deepak.paisapilot.feature.groups.shared.detail.SharedDetailRoute as SharedDetailScreenRoute
+import com.deepak.paisapilot.feature.groups.shared.form.SharedFormRoute as SharedFormScreenRoute
 import com.deepak.paisapilot.feature.groups.form.GroupFormRoute as GroupFormScreenRoute
 import com.deepak.paisapilot.feature.groups.list.GroupListRoute as GroupListScreenRoute
 import com.deepak.paisapilot.feature.insights.InsightsRoute as InsightsScreenRoute
@@ -82,7 +85,9 @@ fun AppShell(startAtOnboarding: Boolean) {
     val showForm = destination?.hasRoute<ExpenseFormRoute>() == true ||
         destination?.hasRoute<ExpenseDetailRoute>() == true ||
         destination?.hasRoute<NewGroupRoute>() == true ||
-        destination?.hasRoute<GroupDetailRoute>() == true
+        destination?.hasRoute<GroupDetailRoute>() == true ||
+        destination?.hasRoute<SharedFormRoute>() == true ||
+        destination?.hasRoute<SharedDetailRoute>() == true
     val tabs = shellTabs()
     val snackbarHostState = remember { SnackbarHostState() }
     val activity = LocalActivity.current
@@ -177,8 +182,23 @@ fun AppShell(startAtOnboarding: Boolean) {
                     },
                 )
             }
-            composable<GroupDetailRoute> {
-                GroupDetailScreenRoute(onClose = { navController.popBackStack() })
+            composable<GroupDetailRoute> { entry ->
+                val groupId = entry.toRoute<GroupDetailRoute>().groupId
+                GroupDetailScreenRoute(
+                    onClose = { navController.popBackStack() },
+                    onAddShared = { navController.navigate(SharedFormRoute(groupId)) },
+                    onOpenShared = { navController.navigate(SharedDetailRoute(groupId, it)) },
+                )
+            }
+            composable<SharedFormRoute> {
+                SharedFormScreenRoute(onClose = { navController.popBackStack() })
+            }
+            composable<SharedDetailRoute> { entry ->
+                val route = entry.toRoute<SharedDetailRoute>()
+                SharedDetailScreenRoute(
+                    onClose = { navController.popBackStack() },
+                    onEdit = { navController.navigate(SharedFormRoute(route.groupId, it)) },
+                )
             }
             composable<InsightsRoute> {
                 InsightsScreenRoute(

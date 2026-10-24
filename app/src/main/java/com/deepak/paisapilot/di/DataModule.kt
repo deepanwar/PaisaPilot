@@ -9,12 +9,15 @@ import com.deepak.paisapilot.core.data.db.RoomTransactionRunner
 import com.deepak.paisapilot.core.data.db.TransactionRunner
 import com.deepak.paisapilot.core.data.db.dao.GroupDao
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
+import com.deepak.paisapilot.core.data.db.dao.SharedExpenseDao
 import com.deepak.paisapilot.core.data.repo.ActivityRepository
 import com.deepak.paisapilot.core.data.repo.DefaultActivityRepository
 import com.deepak.paisapilot.core.data.repo.GroupRepository
 import com.deepak.paisapilot.core.data.repo.RoomGroupRepository
 import com.deepak.paisapilot.core.data.repo.PersonalExpenseRepository
 import com.deepak.paisapilot.core.data.repo.RoomPersonalExpenseRepository
+import com.deepak.paisapilot.core.data.repo.RoomSharedExpenseRepository
+import com.deepak.paisapilot.core.data.repo.SharedExpenseRepository
 import com.deepak.paisapilot.feature.personal.CategoryLabelProvider
 import com.deepak.paisapilot.feature.personal.ResourceCategoryLabelProvider
 import dagger.Module
@@ -41,6 +44,10 @@ object DataModule {
     fun provideGroupDao(database: LedgerDatabase): GroupDao = database.groupDao()
 
     @Provides
+    fun provideSharedExpenseDao(database: LedgerDatabase): SharedExpenseDao =
+        database.sharedExpenseDao()
+
+    @Provides
     @Singleton
     fun provideTransactionRunner(database: LedgerDatabase): TransactionRunner =
         RoomTransactionRunner(database)
@@ -60,6 +67,15 @@ object DataModule {
         dao: PersonalExpenseDao,
         clock: Clock,
     ): PersonalExpenseRepository = RoomPersonalExpenseRepository(dao, clock)
+
+    @Provides
+    @Singleton
+    fun provideSharedExpenseRepository(
+        dao: SharedExpenseDao,
+        groupDao: GroupDao,
+        transactions: TransactionRunner,
+        clock: Clock,
+    ): SharedExpenseRepository = RoomSharedExpenseRepository(dao, groupDao, transactions, clock)
 
     @Provides
     @Singleton

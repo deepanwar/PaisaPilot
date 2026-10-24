@@ -9,6 +9,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun GroupDetailRoute(
     onClose: () -> Unit,
+    onAddShared: () -> Unit,
+    onOpenShared: (String) -> Unit,
     viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -31,5 +33,7 @@ fun GroupDetailRoute(
         onNewMemberChange = viewModel::onNewMemberChange,
         onAddMemberConfirmed = viewModel::onAddMemberConfirmed,
         onSetMemberActive = viewModel::onSetMemberActive,
+        onAddShared = onAddShared,
+        onOpenShared = onOpenShared,
     )
 }

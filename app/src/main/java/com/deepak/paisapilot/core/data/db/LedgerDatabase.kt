@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import com.deepak.paisapilot.core.data.db.dao.GroupDao
 import com.deepak.paisapilot.core.data.db.dao.LedgerSchemaDao
 import com.deepak.paisapilot.core.data.db.dao.PersonalExpenseDao
+import com.deepak.paisapilot.core.data.db.dao.SharedExpenseDao
 import com.deepak.paisapilot.core.data.db.entity.ExpenseGroupEntity
 import com.deepak.paisapilot.core.data.db.entity.ExpenseShareEntity
 import com.deepak.paisapilot.core.data.db.entity.MemberEntity
@@ -32,4 +33,6 @@ abstract class LedgerDatabase : RoomDatabase() {
     abstract fun personalExpenseDao(): PersonalExpenseDao
 
     abstract fun groupDao(): GroupDao
+
+    abstract fun sharedExpenseDao(): SharedExpenseDao
 }

@@ -2,6 +2,8 @@ package com.deepak.paisapilot.feature.groups.detail
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import com.deepak.paisapilot.feature.personal.labelRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,6 +63,7 @@ import com.deepak.paisapilot.ui.theme.PillShape
 import com.deepak.paisapilot.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +84,8 @@ fun GroupDetailScreen(
     onNewMemberChange: (String) -> Unit,
     onAddMemberConfirmed: () -> Unit,
     onSetMemberActive: (String, Boolean) -> Unit,
+    onAddShared: () -> Unit,
+    onOpenShared: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
@@ -142,6 +147,8 @@ fun GroupDetailScreen(
                 onNextMonth = onNextMonth,
                 onAddMemberRequested = onAddMemberRequested,
                 onSetMemberActive = onSetMemberActive,
+                onAddShared = onAddShared,
+                onOpenShared = onOpenShared,
             )
         }
     }
@@ -182,6 +189,8 @@ private fun DetailContent(
     onNextMonth: () -> Unit,
     onAddMemberRequested: () -> Unit,
     onSetMemberActive: (String, Boolean) -> Unit,
+    onAddShared: () -> Unit,
+    onOpenShared: (String) -> Unit,
 ) {
     val month = state.month
     val monthLabel = remember(month) {
@@ -214,12 +223,21 @@ private fun DetailContent(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.semantics { heading() },
             )
-            // Real net arrives with shared expenses (M3.3) and the balance engine (M4).
-            Text(stringResource(R.string.group_net_settled), style = MaterialTheme.typography.headlineSmall)
+            // Exact until settlements exist; the M4 balance engine takes this over.
+            Text(
+                text = when {
+                    state.ownerNetPaise > 0L ->
+                        stringResource(R.string.group_net_owed, formatInr(Paise(state.ownerNetPaise)))
+                    state.ownerNetPaise < 0L ->
+                        stringResource(R.string.group_net_owes, formatInr(Paise(-state.ownerNetPaise)))
+                    else -> stringResource(R.string.group_net_settled)
+                },
+                style = MaterialTheme.typography.headlineSmall,
+            )
         }
         Button(
-            onClick = {},
-            enabled = false,
+            onClick = onAddShared,
+            enabled = state.canRecordShared,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp),
@@ -237,12 +255,14 @@ private fun DetailContent(
         ) {
             Text(stringResource(R.string.group_balances))
         }
+        if (!state.archived && !state.canRecordShared) {
+            Text(
+                text = stringResource(R.string.group_needs_members),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
         Text(
-            text = if (!state.archived && !state.canRecordShared) {
-                stringResource(R.string.group_needs_members)
-            } else {
-                stringResource(R.string.group_actions_soon)
-            },
+            text = stringResource(R.string.group_actions_soon),
             style = MaterialTheme.typography.bodySmall,
         )
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.space2)) {
@@ -257,8 +277,8 @@ private fun DetailContent(
                 text = stringResource(R.string.group_spending_description, formatInr(state.monthTotal), monthLabel),
                 style = MaterialTheme.typography.bodySmall,
             )
-            Text(stringResource(R.string.group_no_events), style = MaterialTheme.typography.bodyMedium)
         }
+        EventList(state.events, onOpenShared)
         Column {
             Text(
                 text = stringResource(R.string.group_members_section),
@@ -282,6 +302,47 @@ private fun DetailContent(
                     Text(stringResource(R.string.group_add_member))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EventList(events: List<GroupEventUi>, onOpen: (String) -> Unit) {
+    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
+    Column {
+        Text(
+            text = stringResource(R.string.group_events_heading),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics { heading() },
+        )
+        if (events.isEmpty()) {
+            Text(
+                text = stringResource(R.string.group_no_events),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = Spacing.space2),
+            )
+        }
+        events.forEach { event ->
+            val title = event.title ?: stringResource(event.category.labelRes())
+            val payer = if (event.payerIsOwner) {
+                stringResource(R.string.group_owner_chip, event.payerName)
+            } else {
+                event.payerName
+            }
+            ListItem(
+                headlineContent = { Text(title) },
+                supportingContent = {
+                    Text(
+                        stringResource(
+                            R.string.group_event_supporting,
+                            dateFormatter.format(event.date),
+                            payer,
+                        ),
+                    )
+                },
+                trailingContent = { MoneyText(paise = event.amount) },
+                modifier = Modifier.clickable(onClickLabel = title) { onOpen(event.id) },
+            )
         }
     }
 }
@@ -400,6 +461,7 @@ private fun GroupDetailPreview() {
             onDeleteConfirmed = {}, onDialogsDismissed = {}, onAddMemberRequested = {},
             onAddMemberDismissed = {}, onNewMemberChange = {}, onAddMemberConfirmed = {},
             onSetMemberActive = { _, _ -> },
+            onAddShared = {}, onOpenShared = {},
         )
     }
 }
